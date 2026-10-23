@@ -133,10 +133,67 @@ INVOKE_SKILL_TOOL = {
 # TODO(3.1.a): Define an OpenAI function-tool schema named ``play_move``.
 # It must accept exactly one required string argument named ``move``, explain
 # that moves use UCI notation (for example e2e4), and reject extra arguments.
-PLAY_MOVE_TOOL: dict = {}
+PLAY_MOVE_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "play_move",
+        "description": (
+            "Play one move as White in UCI notation (from-square, to-square, "
+            "optional promotion piece), e.g. `e2e4`, or `e7e8q` to promote to a queen. "
+            "The server's bot replies as Black automatically."
+        ),
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "move": {"type": "string", "description": "UCI move, e.g. e2e4 or e7e8q."},
+            },
+            "required": ["move"],
+            "additionalProperties": False,
+        },
+    },
+}
 
 # TODO(3.3): Define the `simulate_move` tool, like the `play_move` tool.
-SIMULATE_MOVE_TOOL: dict = {}
+SIMULATE_MOVE_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "simulate_move",
+        "description": (
+            "Inspect a position WITHOUT changing the real game. Pass a complete "
+            "six-field FEN alone to get that position and its legal moves. Pass a FEN "
+            "plus a UCI move to get the position after exactly one ply, for either side."
+        ),
+        "strict": False,  # `move` is optional, which strict mode does not allow
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "fen": {"type": "string", "description": "Complete six-field FEN."},
+                "move": {"type": "string", "description": "Optional UCI move to apply, e.g. e2e4."},
+            },
+            "required": ["fen"],
+            "additionalProperties": False,
+        },
+    },
+}
 
 # TODO()
-RUN_PYTHON_TOOL: dict = {}
+RUN_PYTHON_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "run_python",
+        "description": (
+            "Run a Python snippet in the sandbox. Inside it, `simulate_move` and "
+            "`play_move` are ordinary synchronous functions. Use print() to show results."
+        ),
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "code": {"type": "string", "description": "Python source code to run."},
+            },
+            "required": ["code"],
+            "additionalProperties": False,
+        },
+    },
+}
