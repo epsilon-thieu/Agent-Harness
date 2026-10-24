@@ -93,14 +93,16 @@ def _run_python(env: Any, port: int, arguments: str) -> str:
         result = env.execute(
             f"python /opt/assignment/sandbox_python.py {int(port)} {encoded}"
         )
-        if result.get("returncode", 0) != 0:          # sandbox hỏng, không phải lỗi code của model
-            detail = ""
-            try:
-                detail = json.loads(result.get("stdout") or "{}").get("exception_info", "")
-            except ValueError:
-                pass
-            raise RuntimeError(detail or result.get("stderr") or "sandbox runner failed")
-        return result.get("stdout", "")               # trả nguyên chuỗi JSON của runner
+        if result.get("returncode", 0) != 0:
+            raise RuntimeError(
+                result.get("exception_info")
+                or result.get("stderr")
+                or result.get("output")
+                or "sandbox runner failed"
+            )
+        stdout = result.get("stdout", "")
+        json.loads(stdout)  # runner phải in đúng 1 JSON object, nếu không -> chess_error
+        return stdout
     except Exception as exc:
         return _chess_error(str(exc))
 
